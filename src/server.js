@@ -14,6 +14,10 @@ server.put('/device', function (req, res) {
     res.send('Got a PUT request');
 });
 
+server.delete('/device', function (req, res) {
+    res.send('Got a DELETE request');
+});
+
 server.listen (port, () => {
     console.log(`Example server listening on port ${port}`)
 });
