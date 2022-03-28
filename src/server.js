@@ -1,23 +1,23 @@
 const express = require('express');
+const { json } = require('body-parser');
+const cors = require('cors');
+
+const temperatures = require('./routes/temperature');
+
 const server = express();
 const port = 3000;
 
-server.get('/device', (req, res) => {
-    res.send("Hello World");
-});
+server.use(json());
+server.use(cors());
+server.use('/temperature', temperatures);
+server.use(express.static('public'))
 
-server.post('/device', function (req, res) {
-    res.send('Got a POST request');
-});
+server.get('/', (req, res) => {
+    res.status(200).sendFile(path.join(__dirname, "views", "index.html"));
+})
 
-server.put('/device', function (req, res) {
-    res.send('Got a PUT request');
-});
-
-server.delete('/device', function (req, res) {
-    res.send('Got a DELETE request');
-});
+server.use((req, res) => res.status(404).sendFile(path.join(__dirname, "views", "404.html")));
 
 server.listen (port, () => {
-    console.log(`Example server listening on port ${port}`)
+    console.log(`server running on port ${port}`)
 });
