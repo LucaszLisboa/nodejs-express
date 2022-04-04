@@ -1,6 +1,16 @@
 const express = require('express')
 const router = express.Router()
 
+//PARA VALIDAR A REQUISIÇÃO
+const expressValidator = require('express-validator')
+
+const validations = [
+    expressValidator.check('temperature')
+    .isLength({min: 1})
+    .withMessage("Campo temperatura tem que ter o tamanho maior ou igual a 1")
+    
+]
+
 let dummyCount = 0;
 let temperaturaList = []
 
@@ -14,7 +24,14 @@ router.get('/:id', (req, res) => {
     res.status(200).send(temperatureObject);
 })
 
-router.post('/', (req, res) => {
+router.post('/', [validations], (req, res) => {
+
+    //VALIDA SE HA ERROS NA REQUISIÇÃO
+    const erros = expressValidator.validationResult(req);
+    if(!erros.isEmpty){
+        return res.status(422).send({erros: erros.array()});
+    }
+
     const request = req.body
     
     const temperatureObject = { 
