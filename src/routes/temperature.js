@@ -1,75 +1,104 @@
 const express = require('express')
 const router = express.Router()
+const TemperatureSchema = require('../models/Temperature')
 
 //PARA VALIDAR A REQUISIÇÃO
 const expressValidator = require('express-validator')
 
-const validations = [
-    expressValidator.check('temperature')
-    .isLength({min: 1})
-    .withMessage("Campo temperatura tem que ter o tamanho maior ou igual a 1")
-    
+const validate = [
+    expressValidator.check('temperature').isLength({min: 1}).withMessage("Campo temperatura tem que ter o tamanho maior ou igual a 1"),
+    expressValidator.check('temperature').isNumeric().withMessage("Field temperature should be a number")
 ]
 
-let dummyCount = 0;
-let temperaturaList = []
-
+//GET ALL - TUDO
 router.get('/', (req, res) => {
-    res.status(200).send(temperaturaList);
+    TemperatureSchema.find()
+    .then(temperatures => {
+        res.status(200).send(temperatures);
+    })
+    .catch(err => {
+        res.status(400).send(err)
+    })
 });
 
 router.get('/:id', (req, res) => {
-    const pathId = req.params.id
-    const temperatureObject = temperaturaList.filter(temperature => temperature.id == pathId);
-    res.status(200).send(temperatureObject);
+    TemperatureSchema.findById()
+    .then(temperature => {
+        res.status(200).send(temperature);
+    })
+    .catch(err => {
+        res.status(400).send(err)
+    })
 })
 
-router.post('/', [validations], (req, res) => {
+//CREATE REQUEST - POST
+router.post('/', [validate], (req, res) => {
 
     //VALIDA SE HA ERROS NA REQUISIÇÃO
     const erros = expressValidator.validationResult(req);
-    if(!erros.isEmpty){
+    if(!erros.isEmpty()){
         return res.status(422).send({erros: erros.array()});
     }
 
-    const request = req.body
+    const temperatureSchema = new TemperatureSchema({
+            temperature: req.body.temperature
+        })
+   
+    temperatureSchema.save()    
+    .then(result => {
+        console.log(result)
+        res.status(201).send();
+    }).catch(err => {
+        consolge.log(err)
+        res.status(400).send()
+    })
     
-    const temperatureObject = { 
-        id: dummyCount += 1,
-        temperature: request.temperature
-    }
-    
-    temperaturaList.push(temperatureObject)
-    res.status(201).send();
 });
 
-router.delete('/',(req, res) => {
-    temperaturaList = [];
-    res.status(200).send()
-});
+router.delete('/', (req, res) => {
+    
+    TemperatureSchema.deleteMany().then(result => {
+        res.status(200).send()
+    });
+})
 
+//DELETE BY ID
 router.delete('/query', (req, res) => {
     const queryId = req.query.id
 
-    filteredList = temperatures.filter(temperature => temperature.id != queryId)
-    temperatures = filteredList
-
-    res.status(200).send();
+    TemperatureSchema.findByAndRemove(queryId)
+        .then(result => {
+            res.status(200).send(result)
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(400).send()
+        })
 })
 
+//PUT EDITAR ITEM
 router.put('/:value', (req, res) => {
     const pathValue = req.params.value
     const queryId = req.query.id
-    console.log(`QUERY IS ${queryId} AND PARAMETER IS ${pathValue}`)
 
-    temperaturaList.map(temp => {   
-        if(temp.id == queryId){
-            console.log(`FOUND ID ${queryId} CHANGING VALUE OF OBJECT`)    
-            temp.temperature = pathValue
-        }
-    });
+    // TemperatureSchema.findByIdAndUpdate (queryId, { temperature: pathValue })
+    //     .then(result => {
+    //         res.status(200).send()
+    //     })
+    //     .catch(err => {
+    //         res.status(400).send()
+    //     })
 
-    res.status(200).send()
+    // res.status(200).send()
+
+    TemperatureSchema.findById(queryId)
+        .then(result => {
+            temperature.temperature = pathValue
+            temperatureSchema.save()
+                .then(result => {
+                    res.status(200).send(result)
+                })
+        })
 });
 
 module.exports = router;
