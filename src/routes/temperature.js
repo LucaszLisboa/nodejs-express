@@ -1,9 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const TemperatureSchema = require('../models/Temperature')
+const UserSchema = require('../models/Users')
 
 //PARA VALIDAR A REQUISIÇÃO
 const expressValidator = require('express-validator')
+const auth = require('../middlewares/auth')
 
 const validate = [
     expressValidator.check('temperature').isLength({min: 1}).withMessage("Campo temperatura tem que ter o tamanho maior ou igual a 1"),
@@ -11,7 +13,7 @@ const validate = [
 ]
 
 //GET ALL - TUDO
-router.get('/', (req, res) => {
+router.get('/', auth, (req, res) => {
     TemperatureSchema.find()
     .then(temperatures => {
         res.status(200).send(temperatures);
@@ -22,7 +24,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', (req, res) => {
-    TemperatureSchema.findById()
+    TemperatureSchema.findById(req.params.id)
     .then(temperature => {
         res.status(200).send(temperature);
     })
@@ -42,7 +44,7 @@ router.post('/', [validate], (req, res) => {
 
     const temperatureSchema = new TemperatureSchema({
             temperature: req.body.temperature
-        })
+    })
    
     temperatureSchema.save()    
     .then(result => {
@@ -66,7 +68,7 @@ router.delete('/', (req, res) => {
 router.delete('/query', (req, res) => {
     const queryId = req.query.id
 
-    TemperatureSchema.findByAndRemove(queryId)
+    TemperatureSchema.findByIdAndDelete(queryId)
         .then(result => {
             res.status(200).send(result)
         })
@@ -81,24 +83,14 @@ router.put('/:value', (req, res) => {
     const pathValue = req.params.value
     const queryId = req.query.id
 
-    // TemperatureSchema.findByIdAndUpdate (queryId, { temperature: pathValue })
-    //     .then(result => {
-    //         res.status(200).send()
-    //     })
-    //     .catch(err => {
-    //         res.status(400).send()
-    //     })
-
-    // res.status(200).send()
-
-    TemperatureSchema.findById(queryId)
+    TemperatureSchema.findByIdAndUpdate (queryId, { temperature: pathValue })
         .then(result => {
-            temperature.temperature = pathValue
-            temperatureSchema.save()
-                .then(result => {
-                    res.status(200).send(result)
-                })
+            res.status(200).send()
         })
+        .catch(err => {
+            res.status(400).send()
+        })
+
 });
 
 module.exports = router;
