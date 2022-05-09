@@ -1,11 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const TemperatureSchema = require('../models/Temperature')
-const UserSchema = require('../models/Users')
+const jwt = require('jsonwebtoken')
 
 //PARA VALIDAR A REQUISIÇÃO
 const expressValidator = require('express-validator')
 const auth = require('../middlewares/auth')
+const verifyJWT = require('../middlewares/verifyJWT')
+
+const SECRET = "lucas"
 
 const validate = [
     expressValidator.check('temperature').isLength({min: 1}).withMessage("Campo temperatura tem que ter o tamanho maior ou igual a 1"),
@@ -13,9 +16,10 @@ const validate = [
 ]
 
 //GET ALL - TUDO
-router.get('/', auth, (req, res) => {
+router.get('/', verifyJWT, (req, res) => {
     TemperatureSchema.find()
     .then(temperatures => {
+        console.log(req.userId + ' fez esta chamada!');
         res.status(200).send(temperatures);
     })
     .catch(err => {
@@ -34,7 +38,7 @@ router.get('/:id', (req, res) => {
 })
 
 //CREATE REQUEST - POST
-router.post('/', [validate], (req, res) => {
+router.post('/', verifyJWT, [validate], (req, res) => {
 
     //VALIDA SE HA ERROS NA REQUISIÇÃO
     const erros = expressValidator.validationResult(req);
@@ -56,6 +60,17 @@ router.post('/', [validate], (req, res) => {
     })
     
 });
+
+router.post('/login', auth, (req, res) => {
+    TemperatureSchema.find()
+    .then(temperatures => {
+        const token = jwt.sign({ userId: 1}, SECRET, { expiresIn: 300 })
+        res.json({ auth: true, token });
+    })
+    .catch(err => {
+        res.status(400).send(err)
+    })
+})
 
 router.delete('/', (req, res) => {
     

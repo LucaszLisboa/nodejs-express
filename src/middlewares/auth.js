@@ -1,6 +1,4 @@
 const UserSchema = require('../models/Users')
-const user = 'lucas';
-const pass = '123';
 
 const auth = (req, res, next) => {
 
