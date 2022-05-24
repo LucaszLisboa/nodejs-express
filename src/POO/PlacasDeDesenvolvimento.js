@@ -12,6 +12,10 @@ class PlacasDeDesenvolvimento{
         this.#memoriaFlash = memoriaFlash;
         this.#fabricante = fabricante;
     }
+
+    velocidade(){
+        console.log("Polimorfismo!")
+    }
     
     getChip(){
         return this.#chip;
